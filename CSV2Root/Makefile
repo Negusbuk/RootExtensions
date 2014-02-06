@@ -2,18 +2,15 @@
 # TARGET is the basename of the file containing main()
 # This should be a separate file 
 
-TARGET	= RootExtensions
+TARGET	= 	CSV2Root
 
 #
 # MODULES are all .cc/.hh file combinations containing your
 # own classes except the ones which have to put in a
 # shared library
-# The ROOT linkage has to be specified in 'LinkDef.hh'
 
-MODULES	= TMPalette TMGraph TMGraphErrors TMGraph2D TMGraph2DErrors \
-	  TArcArrow
+MODULES	=	CSV2Root
 
-SUBDIRS = CSV2Root
 # 
 # Starting from here no changes should be necessary
 # 
@@ -24,9 +21,18 @@ ROOTCFLAGS   := $(shell root-config --cflags)
 ROOTLIBS     := $(shell root-config --libs)
 ROOTGLIBS    := $(shell root-config --glibs)
 
+# c-compiler
+CC            = gcc
+CFLAGS        = -Wall
+
 # c++-compiler
 CXX           = g++
-CXXFLAGS      = -Wall -fPIC
+CXXFLAGS      = -Wall -fPIC -std=c++0x
+ifeq ($(JUSTROOT),1)
+CFLAGS       += -DJUSTROOT=1
+CXXFLAGS     += -DJUSTROOT=1
+endif
+
 LD            = g++
 LDFLAGS       = -O2
 SOFLAGS       = -fPIC -O2 -shared
@@ -42,33 +48,22 @@ endif
 
 CXXFLAGS     += $(ROOTCFLAGS)
 
-RLIBMAP	 := rlibmap
-RLIBDEP	 := libGraf.so
-
 ALLDEPEND = $(addsuffix .d,$(MODULES))
 EXISTDEPEND = $(shell find . -name \*.d -type f -print)
 
-all:  depend lib$(TARGET).so lib$(TARGET).rootmap sub
+all:  depend $(TARGET)
 
-sub:
-	@for dir in $(SUBDIRS); do (cd $$dir; make); done
+$(TARGET): $(addsuffix .o,$(MODULES))
+	@echo "Linking binary $@"
+	@$(LD) $^ -o $@ $(ROOTLIBS)
 
-lib$(TARGET).so: $(addsuffix .o,$(MODULES)) $(TARGET)Dict.o
-	@echo "Linking shared library $@"
-	@$(CXX) -fPIC -O2 -shared -dynamiclib -undefined dynamic_lookup $^ -o $@
-
-lib$(TARGET).rootmap: lib$(TARGET).so LinkDef.hh
-	@echo "Creating library rootmap $@"
-	@$(RLIBMAP) -f -o $@ -d lib$(TARGET).so $(RLIBDEP) -c LinkDef.hh
-
-$(TARGET)Dict.cc: $(addsuffix .hh,$(MODULES)) LinkDef.hh
-	@echo "Generating dictionary $@"
-	rootcint -f $(TARGET)Dict.cc -c $(CPPFLAGS) -p $(addsuffix .hh,$(MODULES)) LinkDef.hh
+install: all
+	cp $(TARGET) ~/bin
 
 %.d: %.cc
 	@echo Making dependency for file $< ...
 	@set -e;\
-	$(CXX) -M $(CPPFLAGS) $(CXXFLAGS)  $< |\
+	$(CXX) -M $(CPPFLAGS) $(CXXFLAGS) $< |\
 	sed 's!$*\.o!& $@!' >$@;\
 	[ -s $@ ] || rm -f $@
 
@@ -76,18 +71,13 @@ $(TARGET)Dict.cc: $(addsuffix .hh,$(MODULES)) LinkDef.hh
 	@echo "Compiling $<"
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
-install: all
-	@for dir in $(SUBDIRS); do (cd $$dir; make install); done
-
 depend: $(ALLDEPEND)
 
 clean:
 	@rm -f $(addsuffix .o,$(MODULES))
-	@rm -f *.so
-	@rm -f *Dict.*
-	@rm -f *.rootmap
+	@rm -f $(TARGET)
 	@rm -f *.d
-	@rm -f *~
+	@rm -f *\~
 
 ifneq ($(EXISTDEPEND),)
 -include $(EXISTDEPEND)
