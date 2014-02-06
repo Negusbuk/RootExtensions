@@ -81,6 +81,12 @@ install: all
 
 depend: $(ALLDEPEND)
 
+doc:
+	doxygen documentation/Doxyfile
+	cd html
+	git push origin gh-pages
+	cd ..
+
 clean:
 	@rm -f $(addsuffix .o,$(MODULES))
 	@rm -f *.so
