@@ -1,0 +1,8 @@
+*.o
+*.d
+*.so
+*.rootmap
+*Dict.*
+
+CSV2Root
+
