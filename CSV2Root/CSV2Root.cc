@@ -60,7 +60,10 @@ std::vector<std::string> tokenize(const std::string& line,
 
 int main(int argc, char* argv[])
 {
-	if (argc!=4) return -1;
+	if (argc!=4) {
+		std::cerr << "usage: CSV2Root <line number with column names> <first line with data> <filename>" << std::endl;
+		return -1;
+	}
 	
 	int nameline = std::atoi(argv[1]);
 	int firstdataline = std::atoi(argv[2]);
