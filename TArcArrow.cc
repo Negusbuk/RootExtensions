@@ -28,7 +28,7 @@ TArcArrow::TArcArrow()
   fTheta  = 0;
   
   fAngle = fgDefaultAngle;
-  fgDefaultArrowSize = fgDefaultArrowSize;
+  fArrowSize = fgDefaultArrowSize;
   fOption = fgDefaultOption;
 }
 
