@@ -17,3 +17,5 @@
 *.rootmap
 
 html
+.project
+.cproject
