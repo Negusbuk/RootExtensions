@@ -88,6 +88,7 @@ doc:
 	cd ..
 
 clean:
+	@for dir in $(SUBDIRS); do (cd $$dir; make clean); done
 	@rm -f $(addsuffix .o,$(MODULES))
 	@rm -f *.so
 	@rm -f *Dict.*
